@@ -1,3 +1,4 @@
+import sqlite3
 import json
 import random
 import time
@@ -9,8 +10,23 @@ BROKER = "localhost"
 PORT = 1883
 TOPIC = "sensors/environment"
 
+CACHE_DB = "cache/sensor_cache.db"
+
 mqtt_connected = False
 
+cache_connection = sqlite3.connect(CACHE_DB)
+cache_cursor = cache_connection.cursor()
+
+cache_cursor.execute(
+    """
+    CREATE TABLE IF NOT EXISTS cached_readings (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        payload TEXT NOT NULL
+    )
+    """
+)
+
+cache_connection.commit()
 
 def on_connect(client, userdata, flags, reason_code, properties):
     global mqtt_connected
@@ -29,6 +45,15 @@ def on_disconnect(client, userdata, disconnect_flags, reason_code, properties):
     mqtt_connected = False
     print("MQTT connection lost")
 
+def save_to_cache(message):
+    cache_cursor.execute(
+        "INSERT INTO cached_readings (payload) VALUES (?)",
+        (message,)
+    )
+
+    cache_connection.commit()
+
+    print("Reading saved to local cache")
 
 client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
 
@@ -62,6 +87,7 @@ while True:
         else:
             print("Failed to publish MQTT message")
     else:
-        print(f"MQTT unavailable - reading not sent: {message}")
+        print(f"MQTT unavailable: {message}")
+        save_to_cache(message)
 
     time.sleep(5)
