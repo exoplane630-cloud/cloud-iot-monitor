@@ -1,1 +1,6 @@
 cache/*.db
+.env
+*.pem
+__pycache__/
+*.pyc
+mqtt/password.txt
