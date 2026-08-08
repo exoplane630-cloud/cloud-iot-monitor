@@ -9,6 +9,7 @@ services:
 
     volumes:
       - ./mqtt/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - ./mqtt/password.txt:/mosquitto/config/password.txt
 
 
   postgres:

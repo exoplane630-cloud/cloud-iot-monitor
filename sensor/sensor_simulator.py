@@ -1,3 +1,5 @@
+import os
+from dotenv import load_dotenv
 import sqlite3
 import json
 import random
@@ -5,6 +7,11 @@ import time
 from datetime import datetime
 
 import paho.mqtt.client as mqtt
+
+load_dotenv()
+
+MQTT_USERNAME = os.getenv("MQTT_USERNAME")
+MQTT_PASSWORD = os.getenv("MQTT_PASSWORD")
 
 BROKER = "localhost"
 PORT = 1883
@@ -99,6 +106,11 @@ def on_disconnect(client, userdata, disconnect_flags, reason_code, properties):
 initialise_cache()
 
 client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+
+client.username_pw_set(
+    MQTT_USERNAME,
+    MQTT_PASSWORD
+)
 
 client.on_connect = on_connect
 client.on_disconnect = on_disconnect

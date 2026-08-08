@@ -1,7 +1,15 @@
 import json
 
+import os
+from dotenv import load_dotenv
+
 import paho.mqtt.client as mqtt
 import psycopg2
+
+load_dotenv()
+
+MQTT_USERNAME = os.getenv("MQTT_USERNAME")
+MQTT_PASSWORD = os.getenv("MQTT_PASSWORD")
 
 BROKER = "localhost"
 PORT = 1883
@@ -25,9 +33,14 @@ db_cursor = db_connection.cursor()
 
 
 def on_connect(client, userdata, flags, reason_code, properties):
-    print("Connected to MQTT broker")
-    client.subscribe(TOPIC)
-    print(f"Subscribed to topic: {TOPIC}")
+    if reason_code == 0:
+        print("Connected to MQTT broker")
+
+        client.subscribe(TOPIC)
+        print(f"Subscribed to topic: {TOPIC}")
+
+    else:
+        print(f"MQTT connection failed: {reason_code}")
 
 
 def on_message(client, userdata, message):
@@ -64,6 +77,11 @@ def on_message(client, userdata, message):
 
 
 client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+
+client.username_pw_set(
+    MQTT_USERNAME,
+    MQTT_PASSWORD
+)
 
 client.on_connect = on_connect
 client.on_message = on_message
